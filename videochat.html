@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videollamada - Simulador FIFA 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --fifa-blue: #0066b3;
+            --fifa-yellow: #ffcc00;
+            --fifa-green: #009639;
+            --fifa-red: #e2001a;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f4f4f4;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+            --text-light: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --bg-gradient: linear-gradient(135deg, var(--fifa-blue) 0%, #003b6f 100%);
+            --header-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .bg-fifa-blue { background-color: var(--fifa-blue); }
+        .text-fifa-yellow { color: var(--fifa-yellow); }
+        .border-fifa-blue { border-color: var(--fifa-blue); }
+       
+        header {
+            background-color: var(--header-bg);
+            color: var(--text-light);
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            background: var(--fifa-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--fifa-blue);
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--fifa-yellow);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--fifa-yellow);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--fifa-yellow);
+            color: var(--fifa-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #e6b800;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--fifa-yellow);
+            color: var(--fifa-yellow);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--fifa-yellow);
+            color: var(--fifa-blue);
+        }
+
+    
+        .video-call-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-top: 2rem;
+            padding: 1.5rem;
+        }
+
+        .call-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .call-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--fifa-blue);
+        }
+
+        .call-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .call-duration {
+            font-weight: bold;
+            color: var(--fifa-green);
+        }
+
+        .participants-count {
+            background-color: var(--fifa-blue);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .video-item {
+            position: relative;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-item.main {
+            grid-column: 1 / -1;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .video-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+
+        .user-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 0.8rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-name {
+            font-weight: bold;
+        }
+
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--fifa-green);
+        }
+
+        .mic-status {
+            font-size: 1.2rem;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .control-btn.primary {
+            background-color: var(--fifa-blue);
+            color: white;
+        }
+
+        .control-btn.primary:hover {
+            background-color: #005596;
+        }
+
+        .control-btn.secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .control-btn.secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .control-btn.danger {
+            background-color: var(--fifa-red);
+            color: white;
+        }
+
+        .control-btn.danger:hover {
+            background-color: #c50015;
+        }
+
+        .participants-list {
+            margin-top: 2rem;
+        }
+
+        .participants-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--fifa-blue);
+        }
+
+        .participants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .participant-card {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--fifa-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .participant-details {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: bold;
+            margin-bottom: 0.2rem;
+        }
+
+        .participant-status {
+            font-size: 0.8rem;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .badge-moderator {
+            background-color: var(--fifa-yellow);
+            color: var(--fifa-blue);
+        }
+
+        .badge-speaker {
+            background-color: var(--fifa-green);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">
+                <div class="logo-img">F26</div>
+                <div class="logo-text">Copa Mundial 2026</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="tournament.html">Torneo</a></li>
+                <li><a href="chat.html">Chat</a></li>
+                <li><a href="tasks.html">Tareas</a></li>
+                <li><a href="rewards.html">Recompensas</a></li>
+                <li><a href="login.html">Cerrar Sesión</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Iniciar Sesión</a>
+                <a href="register.html" class="btn btn-primary">Registrarse</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="video-call-container">
+            <div class="call-header">
+                <h1 class="call-title">Videollamada - Grupo A</h1>
+                <div class="call-info">
+                    <div class="call-duration" id="call-timer">00:05:32</div>
+                    <div class="participants-count">8 participantes</div>
+                </div>
+            </div>
+
+            <div class="video-grid">
+                <div class="video-item main">
+                    <div class="video-placeholder">
+                        <i class="fas fa-user"></i>
+                        <p>ArgentinaFan (Tú)</p>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">ArgentinaFan (Tú)</div>
+                        <div class="user-status">
+                            <div class="status-indicator"></div>
+                            <div class="mic-status">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-placeholder">
+                        <i class="fas fa-user"></i>
+                        <p>México2026</p>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">México2026</div>
+                        <div class="user-status">
+                            <div class="status-indicator"></div>
+                            <div class="mic-status">
+                                <i class="fas fa-microphone-slash"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-placeholder">
+                        <i class="fas fa-user"></i>
+                        <p>BrasilGol</p>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">BrasilGol</div>
+                        <div class="user-status">
+                            <div class="status-indicator"></div>
+                            <div class="mic-status">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-placeholder">
+                        <i class="fas fa-user"></i>
+                        <p>GermanyFC</p>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">GermanyFC</div>
+                        <div class="user-status">
+                            <div class="status-indicator"></div>
+                            <div class="mic-status">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-container">
+                <button class="control-btn secondary" title="Silenciar micrófono">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn secondary" title="Apagar cámara">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="control-btn primary" title="Compartir pantalla">
+                    <i class="fas fa-desktop"></i>
+                </button>
+                <button class="control-btn danger" title="Finalizar llamada">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+                <button class="control-btn secondary" title="Más opciones">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+
+            <div class="participants-list">
+                <h2 class="participants-title">Participantes</h2>
+                <div class="participants-grid">
+                    <div class="participant-card">
+                        <div class="participant-avatar">A</div>
+                        <div class="participant-details">
+                            <div class="participant-name">ArgentinaFan</div>
+                            <div class="participant-status">
+                                <i class="fas fa-microphone"></i> Hablando
+                            </div>
+                        </div>
+                        <span class="badge badge-moderator">Mod</span>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">M</div>
+                        <div class="participant-details">
+                            <div class="participant-name">México2026</div>
+                            <div class="participant-status">
+                                <i class="fas fa-microphone-slash"></i> Silenciado
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">B</div>
+                        <div class="participant-details">
+                            <div class="participant-name">BrasilGol</div>
+                            <div class="participant-status">
+                                <i class="fas fa-microphone"></i> Activo
+                            </div>
+                        </div>
+                        <span class="badge badge-speaker">Speaker</span>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">G</div>
+                        <div class="participant-details">
+                            <div class="participant-name">GermanyFC</div>
+                            <div class="participant-status">
+                                <i class="fas fa-microphone"></i> Activo
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">E</div>
+                        <div class="participant-details">
+                            <div class="participant-name">England2026</div>
+                            <div class="participant-status">
+                                <i class="fas fa-hand-paper"></i> Levantó la mano
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">S</div>
+                        <div class="participant-details">
+                            <div class="participant-name">SpainFan</div>
+                            <div class="participant-status">
+                                <i class="fas fa-headphones"></i> Escuchando
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Proyecto de Programación Orientada a Internet - Grupo 051 - Agosto-Diciembre 2025</p>
+            <p>Lic. en Multimedia y Animación Digital - FCFM UANL</p>
+            <p>Primer Avance: Diseño y Maquetación de Interfaz</p>
+        </div>
+    </footer>
+
+    <script>
+        
+        let callSeconds = 332; 
+        const timerElement = document.getElementById('call-timer');
+        
+        function updateCallTimer() {
+            callSeconds++;
+            const hours = Math.floor(callSeconds / 3600);
+            const minutes = Math.floor((callSeconds % 3600) / 60);
+            const seconds = callSeconds % 60;
+            
+            timerElement.textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        setInterval(updateCallTimer, 1000);
+        
+
+        document.querySelectorAll('.control-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.classList.contains('secondary')) {
+                    this.classList.toggle('active');
+                    if (this.querySelector('.fa-microphone')) {
+                        const icon = this.querySelector('i');
+                        if (icon.classList.contains('fa-microphone')) {
+                            icon.classList.replace('fa-microphone', 'fa-microphone-slash');
+                        } else {
+                            icon.classList.replace('fa-microphone-slash', 'fa-microphone');
+                        }
+                    }
+                    if (this.querySelector('.fa-video')) {
+                        const icon = this.querySelector('i');
+                        if (icon.classList.contains('fa-video')) {
+                            icon.classList.replace('fa-video', 'fa-video-slash');
+                        } else {
+                            icon.classList.replace('fa-video-slash', 'fa-video');
+                        }
+                    }
+                } else if (this.classList.contains('danger')) {
+
+                    if (confirm('¿Estás seguro de que quieres finalizar la videollamada?')) {
+                        alert('Llamada finalizada. Redirigiendo...');
+                        window.location.href = 'chat.html';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

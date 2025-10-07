@@ -1,0 +1,659 @@
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Grupal - Simulador FIFA 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --fifa-blue: #0066b3;
+            --fifa-yellow: #ffcc00;
+            --fifa-green: #009639;
+            --fifa-red: #e2001a;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f4f4f4;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+            --text-light: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --bg-gradient: linear-gradient(135deg, var(--fifa-blue) 0%, #003b6f 100%);
+            --header-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        .bg-fifa-blue { background-color: var(--fifa-blue); }
+        .text-fifa-yellow { color: var(--fifa-yellow); }
+        .border-fifa-blue { border-color: var(--fifa-blue); }
+        
+        header {
+            background-color: var(--header-bg);
+            color: var(--text-light);
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            background: var(--fifa-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--fifa-blue);
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--fifa-yellow);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--fifa-yellow);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--fifa-yellow);
+            color: var(--fifa-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #e6b800;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--fifa-yellow);
+            color: var(--fifa-yellow);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--fifa-yellow);
+            color: var(--fifa-blue);
+        }
+
+   
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+
+        @keyframes typing {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .typing-animation span {
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-animation span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-animation span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        .chat-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-sidebar {
+            background-color: #f9fafb;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin-left: 15px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--fifa-blue);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <header>
+        <div class="container nav-container">
+            <div class="logo">
+                <div class="logo-img">F26</div>
+                <div class="logo-text">Copa Mundial 2026</div>
+            </div>
+            <ul class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="teams.html">Equipos</a>
+                <a href="chat.html">Chat</a>
+                <a href="rewards.html">Recompensas</a>
+                <a href="tasks.html">Tareas</a>
+                <a href="login.html">Cerrar Sesión</a>
+            </ul>
+            <div class="auth-buttons">
+                <label class="theme-switch" title="Cambiar modo oscuro/claro">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row gap-6 h-[80vh]">
+            <div class="w-full md:w-1/4 chat-container chat-sidebar">
+                <div class="p-4">
+                    <h2 class="text-xl font-bold text-fifa-blue mb-4 flex items-center">
+                        <i class="fas fa-users mr-2"></i> Grupos y Usuarios
+                    </h2>
+                    <a href="creategroup.html" class="block w-full text-center py-2 mb-4 bg-fifa-blue text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus-circle mr-2"></i> Crear Nuevo Grupo
+                    </a>
+                </div>
+                
+                <div class="mb-6 border-t border-gray-200 pt-4 px-4 custom-scrollbar overflow-y-auto">
+                    <h3 class="font-medium text-gray-700 mb-2">Mis grupos</h3>
+                    <div class="space-y-2">
+                        <div class="group-item bg-fifa-blue bg-opacity-10 border-l-4 border-fifa-blue p-3 rounded-r-lg cursor-pointer transition hover:bg-opacity-20">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-fifa-blue">Grupo A</h4>
+                                <span class="bg-fifa-green text-white text-xs px-2 py-1 rounded-full">12</span>
+                            </div>
+                            <p class="text-sm text-gray-600 truncate">Argentina, México, Polonia, Arabia Saudita</p>
+                        </div>
+                        
+                        <div class="group-item bg-gray-100 border-l-4 border-gray-400 p-3 rounded-r-lg cursor-pointer transition hover:bg-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-medium">Grupo B</h4>
+                                <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full">8</span>
+                            </div>
+                            <p class="text-sm text-gray-600 truncate">Inglaterra, EE.UU., Irán, Gales</p>
+                        </div>
+                        
+                        <div class="group-item bg-gray-100 border-l-4 border-gray-400 p-3 rounded-r-lg cursor-pointer transition hover:bg-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-medium">Amigos</h4>
+                                <span class="bg-gray-400 text-white text-xs px-2 py-1 rounded-full">3</span>
+                            </div>
+                            <p class="text-sm text-gray-600 truncate">Chat privado con amigos</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4 mt-4 px-4 custom-scrollbar overflow-y-auto">
+                    <h3 class="font-medium text-gray-700 mb-2">Usuarios conectados</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center p-2 rounded-lg hover:bg-gray-100 transition">
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span class="text-blue-800 font-medium">A</span>
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">ArgentinaFan</h4>
+                                <p class="text-xs text-gray-500">En línea</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-2 rounded-lg hover:bg-gray-100 transition">
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                    <span class="text-green-800 font-medium">M</span>
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">México2026</h4>
+                                <p class="text-xs text-gray-500">En línea</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-2 rounded-lg hover:bg-gray-100 transition">
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                    <span class="text-red-800 font-medium">B</span>
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">BrasilGol</h4>
+                                <p class="text-xs text-gray-500">En línea</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center p-2 rounded-lg hover:bg-gray-100 transition">
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <span class="text-purple-800 font-medium">G</span>
+                                </div>
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></span>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-medium">GermanyFC</h4>
+                                <p class="text-xs text-gray-500">Desconectado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full md:w-3/4 chat-container chat-main">
+                <div class="bg-fifa-blue text-white px-6 py-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold">Grupo A</h2>
+                        <p class="text-fifa-yellow">Argentina, México, Polonia, Arabia Saudita</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex -space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-200 border-2 border-fifa-blue"></div>
+                            <div class="w-8 h-8 rounded-full bg-green-200 border-2 border-fifa-blue"></div>
+                            <div class="w-8 h-8 rounded-full bg-red-200 border-2 border-fifa-blue"></div>
+                            <div class="w-8 h-8 rounded-full bg-yellow-200 border-2 border-fifa-blue flex items-center justify-center text-xs font-bold">+9</div>
+                        </div>
+                        <div class="hidden md:block">
+                            <span class="bg-fifa-green text-white text-sm px-2 py-1 rounded-full">12 miembros</span>
+                        </div>
+                        <button class="text-white hover:text-fifa-yellow transition">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 p-4 overflow-y-auto custom-scrollbar" id="chat-messages">
+                    <div class="text-center text-gray-500 text-sm my-4">Hoy</div>
+                    
+                    <div class="flex mb-4 animate-fade-in">
+                        <div class="flex-shrink-0 mr-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-800 font-medium">A</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-baseline">
+                                <h4 class="font-medium">ArgentinaFan</h4>
+                                <span class="ml-2 text-xs text-gray-500">10:30 AM</span>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg rounded-tl-none p-3 mt-1">
+                                <p>¡Hola a todos! ¿Listos para el partido de hoy? ¡Vamos Argentina! 🇦🇷</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex mb-4 justify-end animate-fade-in">
+                        <div class="flex-1 max-w-xs">
+                            <div class="flex items-baseline justify-end">
+                                <span class="mr-2 text-xs text-gray-500">10:32 AM</span>
+                                <h4 class="font-medium">Tú</h4>
+                            </div>
+                            <div class="bg-fifa-blue text-white rounded-lg rounded-tr-none p-3 mt-1">
+                                <p>¡Claro que sí! Espero que sea un buen partido. ¿Alguien tiene predicciones?</p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ml-3">
+                            <div class="w-10 h-10 rounded-full bg-fifa-yellow flex items-center justify-center">
+                                <span class="text-fifa-blue font-medium">T</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex mb-4 animate-fade-in">
+                        <div class="flex-shrink-0 mr-3">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                                <span class="text-green-800 font-medium">M</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-baseline">
+                                <h4 class="font-medium">México2026</h4>
+                                <span class="ml-2 text-xs text-gray-500">10:34 AM</span>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg rounded-tl-none p-3 mt-1">
+                                <p>Yo creo que va a estar reñido, pero México puede dar la sorpresa. ¡Vamos Tri! 🇲🇽</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex mb-4 animate-fade-in">
+                        <div class="flex-shrink-0 mr-3">
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                <span class="text-red-800 font-medium">B</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-baseline">
+                                <h4 class="font-medium">BrasilGol</h4>
+                                <span class="ml-2 text-xs text-gray-500">10:36 AM</span>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg rounded-tl-none p-3 mt-1">
+                                <p>Aquí les comparto las estadísticas de los últimos encuentros</p>
+                                <div class="mt-2 flex items-center p-2 bg-white rounded border border-gray-200">
+                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">estadisticas_encuentros.pdf</p>
+                                        <p class="text-xs text-gray-500">2.4 MB</p>
+                                    </div>
+                                    <button class="text-fifa-blue hover:text-blue-700">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex mb-4 animate-fade-in">
+                        <div class="flex-shrink-0 mr-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-800 font-medium">A</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-gray-100 rounded-lg rounded-tl-none p-3">
+                                <div class="flex items-center typing-animation">
+                                    <span class="text-gray-500">ArgentinaFan está escribiendo</span>
+                                    <div class="ml-2 flex">
+                                        <span class="w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
+                                        <span class="w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
+                                        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 p-4">
+                    <div class="flex items-center">
+                        <div class="flex space-x-2 mr-3">
+                            <button class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                                <i class="fas fa-paperclip text-gray-600"></i>
+                            </button>
+                            <a href="videochat.html" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                                <i class="fas fa-video text-fifa-blue"></i>
+                            </a>
+                            <button class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                                <i class="fas fa-image text-gray-600"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                placeholder="Escribe un mensaje..." 
+                                class="w-full py-3 pl-4 pr-12 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-fifa-blue focus:bg-white transition"
+                                id="message-input"
+                            >
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                                <button class="text-gray-500 hover:text-fifa-blue transition" id="emoji-button">
+                                    <i class="far fa-smile"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button class="ml-3 w-12 h-12 rounded-full bg-fifa-blue hover:bg-blue-700 flex items-center justify-center transition" id="send-button">
+                            <i class="fas fa-paper-plane text-white"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-3 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <label class="flex items-center text-sm text-gray-600">
+                                <input type="checkbox" class="mr-2 h-4 w-4 text-fifa-blue focus:ring-fifa-blue border-gray-300 rounded">
+                                <span>Cifrar mensaje</span>
+                            </label>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500">
+                            <span>Presiona Enter para enviar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <script>
+        // Dentro de tu script en chat.html
+document.addEventListener('DOMContentLoaded', function() {
+    // ... (tu código existente)
+
+    // --- NUEVO CÓDIGO PARA EL CHAT EN TIEMPO REAL ---
+
+    const socket = io('http://localhost:4000'); // La URL de tu servidor backend
+    const room = "Grupo A"; // El grupo al que te unes
+
+    // 1. Conectarse y unirse a la sala
+    socket.on('connect', () => {
+        console.log('Conectado al servidor de chat!');
+        socket.emit('joinRoom', room);
+    });
+
+    // 2. Modificar tu función sendMessage para que use sockets
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const messageText = messageInput.value.trim();
+
+        if (messageText) {
+            const messageData = {
+                room: room,
+                user: 'Tú', // En un sistema real, aquí iría el nombre del usuario logueado
+                text: messageText,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // Enviar el mensaje al servidor
+            socket.emit('sendMessage', messageData);
+            messageInput.value = '';
+        }
+    }
+
+    // 3. Escuchar por mensajes entrantes del servidor
+    socket.on('receiveMessage', (data) => {
+        // No mostrar tu propio mensaje dos veces
+        if (data.user === 'Tú') { 
+            // Aquí podrías manejar la lógica para mostrar tu propio mensaje enviado
+            // pero lo ideal es que el servidor asigne un ID de usuario único.
+            // Por simplicidad, el ejemplo actual muestra todos los mensajes que llegan.
+        }
+
+        // Crear y mostrar el mensaje en la interfaz
+        // (Esta es la lógica para mostrar mensajes de OTROS usuarios)
+        const chatMessages = document.getElementById('chat-messages');
+        const messageElement = document.createElement('div');
+        // Aquí deberías tener una lógica para diferenciar si el mensaje es tuyo o de otro
+        // Por ejemplo, comparando un `userId` que envíes en el `messageData`
+        messageElement.className = 'flex mb-4 animate-fade-in';
+        messageElement.innerHTML = `
+            <div class="flex-shrink-0 mr-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span class="text-blue-800 font-medium">${data.user.charAt(0)}</span>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-baseline">
+                    <h4 class="font-medium">${data.user}</h4>
+                    <span class="ml-2 text-xs text-gray-500">${data.time}</span>
+                </div>
+                <div class="bg-gray-100 rounded-lg rounded-tl-none p-3 mt-1">
+                    <p>${data.text}</p>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+    });
+
+    // Asegúrate de que tus botones y eventos de 'Enter' llamen a la nueva función sendMessage
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+    document.getElementById('message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+});
+    </script>
+</body>
+
+</html>
