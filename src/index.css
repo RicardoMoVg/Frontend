@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-fifa-blue: #0066b3;
+  --color-fifa-yellow: #ffcc00;
+  --color-fifa-green: #009639;
+  --color-fifa-red: #e2001a;
+
+  --animate-float: float 3s ease-in-out infinite;
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+:root {
+  /* Legacy variables if needed, but mapped to theme above */
+}
+
+.input-transition {
+  transition: all 0.3s ease;
+}
+
+.input-transition:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 102, 179, 0.1);
+}
