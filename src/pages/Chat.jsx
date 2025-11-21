@@ -44,10 +44,13 @@ const Chat = () => {
         });
 
         socket.on('receiveMessage', (data) => {
-            if (data.room === currentRoom) { // Solo agregar si es la sala actual
-                // Verificar si el mensaje ya existe para evitar duplicados (opcional, pero buena práctica)
+            console.log("Mensaje recibido del socket:", data); // 1. Para depurar
+            console.log("Sala actual en estado:", currentRoom); // 2. Para comparar
+
+            // SOLUCIÓN: Convertir ambos a String para comparar
+            if (String(data.room) === String(currentRoom)) {
                 setMessages(prev => {
-                    // Simple check to avoid duplicates if strict mode causes double renders or socket fires twice
+                    // Evitar duplicados por si acaso
                     if (prev.some(m => m.time === data.time && m.text === data.text)) return prev;
                     return [...prev, data];
                 });
