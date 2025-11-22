@@ -14,6 +14,7 @@ import MatchSimulation from './pages/MatchSimulation';
 import Rules from './pages/Rules';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Navbar from './components/Navbar';
+import VideoCall from './pages/VideoCall';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/rules" element={<Rules />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/video/:roomId" element={<VideoCall />} />
             </Routes>
           </div>
         </div>

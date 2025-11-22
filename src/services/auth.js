@@ -1,4 +1,9 @@
-const API_URL = '/api';
+// src/services/auth.js
+
+// --- CORRECCIÓN CRÍTICA: URL DINÁMICA ---
+// Esto detecta si estás en Vercel (usa la variable) o en tu PC (usa localhost)
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+const API_URL = `${BASE_URL}/api`;
 
 const handleResponse = async (response) => {
     const text = await response.text();
@@ -17,6 +22,7 @@ const handleResponse = async (response) => {
 };
 
 export const login = async (email, password) => {
+    // Ahora la petición viaja correctamente a https://tu-backend-render.com/api/login
     const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {

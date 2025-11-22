@@ -39,34 +39,12 @@ const Chat = () => {
             setGroups(groupList);
         });
 
-        socket.on('newGroupAdded', (newGroup) => {
-            setGroups(prev => [...prev, newGroup]);
-        });
-
-        socket.on('receiveMessage', (data) => {
-            console.log("Mensaje recibido del socket:", data); // 1. Para depurar
-            console.log("Sala actual en estado:", currentRoom); // 2. Para comparar
-
-            // SOLUCIÓN: Convertir ambos a String para comparar
-            if (String(data.room) === String(currentRoom)) {
-                setMessages(prev => {
-                    // Evitar duplicados por si acaso
-                    if (prev.some(m => m.time === data.time && m.text === data.text)) return prev;
-                    return [...prev, data];
-                });
-            }
-        });
-
         return () => {
             socket.off('initialGroupList');
-            socket.off('newGroupAdded');
-            socket.off('receiveMessage');
         };
-    }, [socket, currentUser.id, currentRoom]); // currentRoom en deps para el filtro de receiveMessage
+    }, [socket]);
 
     const handleJoinRoom = async (roomId, name, privateChat = false, targetId = null) => {
-        if (currentRoom === roomId) return;
-
         setCurrentRoom(roomId);
         setRoomName(name);
         setIsPrivate(privateChat);
